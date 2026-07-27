@@ -1,0 +1,23 @@
+
+INSERT INTO Productos (codigo, nombre, categoria, unidad_medida, activo) VALUES
+('10251', 'Peat Moss 3.8 CF LM-118 Germination Mix', 'ESPECIALIDADES', 'unidad', 1),
+('10250', 'Peat Moss 3.8 CF AFM-1 Germination Mix', 'ESPECIALIDADES', 'unidad', 1),
+('10233', 'Peat Moss TS 1 Fine Recipe (876)', 'ESPECIALIDADES', 'unidad', 1),
+('10221', 'Plastico P/Inv UV 6mt x 53mt x 6mm', 'ESPECIALIDADES', 'unidad', 1),
+('10222', 'Plastico P/Inv UV 6mt x 53mt x 7mm', 'ESPECIALIDADES', 'unidad', 1),
+('10262', 'Plastico P/Invernadero 6.10x53mt 7mil 5', 'ESPECIALIDADES', 'unidad', 1),
+('10274', 'Plastico P/Invernadero 6mil 55% mtr /C', 'ESPECIALIDADES', 'unidad', 1),
+('13184', 'Plastico Salinero 6x100mt x 6m Negro', 'ESPECIALIDADES', 'unidad', 1),
+('13454', 'Saran 47% 1.82x100mts Negro c/Ojetes y R', 'ESPECIALIDADES', 'unidad', 1),
+('13452', 'Saran 47% 3.65x100mts Negro c/ojet y R', 'ESPECIALIDADES', 'unidad', 1),
+('13485', 'Saran 63% 1.80x100mt Negro C/Ojetes', 'ESPECIALIDADES', 'unidad', 1),
+('13449', 'Saran 63% 3.65x100mts Negro c/ojetes y R', 'ESPECIALIDADES', 'unidad', 1),
+('13462', 'Saran 63% Pie cuadrado Negro C/ojetes R', 'ESPECIALIDADES', 'unidad', 1),
+('13486', 'Saran 80% 1.8x100mt Negro C/ojetes', 'ESPECIALIDADES', 'unidad', 1),
+('13455', 'Saran 80% 3.65x100mts Negro c/ojetes y R', 'ESPECIALIDADES', 'unidad', 1),
+('13227', 'Saran 80% 4x100mts Negro Hibrido', 'ESPECIALIDADES', 'unidad', 1),
+('13481', 'Saran 80% de 10x12 Verde. Con Ojetes y R', 'ESPECIALIDADES', 'unidad', 1),
+('11994', 'Soga Nautiluz 8mm Metro', 'ESPECIALIDADES', 'metro', 1),
+('13031', 'Tubete de 115 ml', 'ESPECIALIDADES', 'unidad', 1),
+('13041', 'Tubete de 180 ml', 'ESPECIALIDADES', 'unidad', 1),
+('13279', 'Tubete de 280 ml', 'ESPECIALIDADES', 'unidad', 1);

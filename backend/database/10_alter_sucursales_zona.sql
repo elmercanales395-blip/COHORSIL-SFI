@@ -1,0 +1,1 @@
+ALTER TABLE Sucursales ADD zona VARCHAR(100) NULL;

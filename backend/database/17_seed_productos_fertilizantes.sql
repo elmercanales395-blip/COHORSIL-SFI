@@ -1,0 +1,22 @@
+
+INSERT INTO Productos (codigo, nombre, categoria, unidad_medida, activo) VALUES
+('01114', '12-24-12 43 kg Fertica', 'FERTILIZANTES', 'kg', 1),
+('01106', '18-46-0 43 kilos', 'FERTILIZANTES', 'kg', 1),
+('01151', '20-20-0 43 kilos Fertica', 'FERTILIZANTES', 'kg', 1),
+('01243', 'Cafetalera Plus 20-5-17 43 kg', 'FERTILIZANTES', 'kg', 1),
+('01206', 'Fastrac Plantia 20-15-5 43 kg', 'FERTILIZANTES', 'kg', 1),
+('01274', 'Ferti Crop Café 43 kg', 'FERTILIZANTES', 'kg', 1),
+('01191', 'K-CL Soluble 45.36 kg', 'FERTILIZANTES', 'kg', 1),
+('01124', 'K-CL Granular 43 kilos', 'FERTILIZANTES', 'kg', 1),
+('01125', 'K-MAG Granular 43 kilos Fertica', 'FERTILIZANTES', 'kg', 1),
+('01105', 'MAP Técnico 12-61-0 25 kilos', 'FERTILIZANTES', 'kg', 1),
+('01141', 'Nitrato de Amonio 43 kg', 'FERTILIZANTES', 'kg', 1),
+('01139', 'Nitrato de Calcio 25 kilos', 'FERTILIZANTES', 'kg', 1),
+('01188', 'Nitro-Extend', 'FERTILIZANTES', NULL, 1),
+('01307', 'Npk Fertil 18-3-18 Fertica 43 kg', 'FERTILIZANTES', 'kg', 1),
+('01194', 'Nutricafe Plantilla 43 kg', 'FERTILIZANTES', 'kg', 1),
+('01181', 'Solubor 25 kilos', 'FERTILIZANTES', 'kg', 1),
+('01190', 'Sulfato de Amonio 43 kg Disagro', 'FERTILIZANTES', 'kg', 1),
+('01145', 'Sulfato de Amonio 43 kilos', 'FERTILIZANTES', 'kg', 1),
+('01143', 'Sulfato de Magnesio 25 kilos', 'FERTILIZANTES', 'kg', 1),
+('01116', 'Urea 46% 43 kg de Fertica', 'FERTILIZANTES', 'kg', 1);

@@ -1,0 +1,575 @@
+:root {
+  --color-primary: #0f4c81;
+  --color-primary-dark: #0a3760;
+  --color-accent: #2e7d32;
+  --color-accent-light: #e8f5e9;
+  --color-bg: #f4f6f8;
+  --color-surface: #ffffff;
+  --color-border: #dde3e8;
+  --color-text: #1f2937;
+  --color-text-muted: #6b7280;
+  --color-danger: #c0392b;
+  --color-warning: #b8860b;
+  --radius: 8px;
+  --shadow: 0 1px 3px rgba(15, 76, 129, 0.12);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: 14px;
+}
+
+/* Layout */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-primary);
+  color: #fff;
+  padding: 14px 28px;
+  box-shadow: var(--shadow);
+}
+
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.5px;
+}
+
+.app-brand-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  background: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.app-brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+.app-brand-name {
+  font-size: 20px;
+}
+
+.app-brand-sub {
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+.app-nav {
+  display: flex;
+  gap: 4px;
+}
+
+.app-nav a {
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: var(--radius);
+}
+
+.app-nav a:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.app-nav a.active {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+.app-user {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 14px;
+}
+
+.btn-logout {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: var(--radius);
+}
+
+.btn-logout:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.app-content {
+  max-width: 1080px;
+  margin: 28px auto;
+  padding: 0 20px;
+}
+
+/* Auth page */
+.auth-screen {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: url('../assets/login-bg.webp') center/cover no-repeat;
+  overflow: hidden;
+}
+
+.auth-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 20, 15, 0.55);
+}
+
+.auth-card {
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 14px;
+  padding: 36px 32px;
+  width: 100%;
+  max-width: 360px;
+  margin: 24px;
+  box-shadow: 0 20px 45px rgba(10, 30, 20, 0.35);
+}
+
+.auth-brand {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.auth-brand .app-brand-mark {
+  margin: 0 auto 10px;
+}
+
+.auth-brand h1 {
+  font-size: 18px;
+  margin: 0;
+  color: var(--color-primary);
+}
+
+.auth-brand p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.field {
+  margin-bottom: 16px;
+}
+
+.field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--color-text-muted);
+}
+
+.field input,
+.field select {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.password-input-wrapper {
+  position: relative;
+}
+
+.password-input-wrapper input {
+  padding-right: 38px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 4px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.password-toggle:hover {
+  color: var(--color-text);
+}
+
+.btn-primary {
+  width: 100%;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-dark);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error-text {
+  color: var(--color-danger);
+  font-size: 13px;
+  margin: -6px 0 14px;
+}
+
+.success-text {
+  color: var(--color-accent);
+  font-size: 13px;
+  margin: -6px 0 14px;
+}
+
+.auth-forgot {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.auth-forgot-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  color: var(--color-primary);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.auth-forgot-message {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--color-text-muted, #6b7280);
+}
+
+/* Cards / sections */
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px 22px;
+  margin-bottom: 22px;
+}
+
+.card h2 {
+  margin: 0 0 16px;
+  font-size: 16px;
+  color: var(--color-primary);
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 20px;
+  color: var(--color-primary);
+}
+
+.btn-sm {
+  width: auto;
+  padding: 6px 14px;
+  font-size: 13px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  align-items: end;
+}
+
+.form-grid .btn-primary {
+  height: 38px;
+}
+
+.form-grid .btn-action {
+  height: 38px;
+  width: fit-content;
+  padding: 0 16px;
+}
+
+.btn-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+th {
+  color: var(--color-text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 11.5px;
+  letter-spacing: 0.4px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.badge-pendiente {
+  background: #fdecea;
+  color: var(--color-danger);
+}
+
+.badge-resuelto {
+  background: var(--color-accent-light);
+  color: var(--color-accent);
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+}
+
+.btn-link.danger {
+  color: var(--color-danger);
+}
+
+/* Botones de acción de la tabla de faltantes (Resolver / Eliminar) */
+.btn-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  background: var(--color-surface);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.btn-action svg {
+  width: 13px;
+  height: 13px;
+}
+
+.btn-action:hover {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.15);
+}
+
+.btn-action:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: none;
+}
+
+.btn-action.resolver {
+  color: var(--color-accent);
+  border-color: var(--color-accent-light);
+  background: var(--color-accent-light);
+}
+
+.btn-action.resolver:hover {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.btn-action.eliminar {
+  color: var(--color-danger);
+  border-color: #fdecea;
+  background: #fdecea;
+}
+
+.btn-action.eliminar:hover {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+.btn-action.info {
+  color: var(--color-primary);
+  border-color: #e7eef5;
+  background: #e7eef5;
+}
+
+.btn-action.info:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.empty-state {
+  color: var(--color-text-muted);
+  font-size: 13.5px;
+  text-align: center;
+  padding: 24px 0;
+}
+
+/* Hoja de solicitud de pedido / hoja de entrega, pensada para imprimirse */
+.hoja-acciones {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.hoja-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 2px solid var(--color-primary);
+  padding-bottom: 14px;
+  margin-bottom: 20px;
+}
+
+.hoja-header h1 {
+  margin: 0;
+  font-size: 20px;
+  color: var(--color-primary);
+}
+
+.hoja-header p {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+.hoja-titulo {
+  text-align: right;
+}
+
+.hoja-titulo h2 {
+  margin: 0 0 8px;
+  font-size: 15px;
+  color: var(--color-text);
+}
+
+.hoja-titulo p {
+  margin: 2px 0;
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+.hoja-totales {
+  margin-top: 18px;
+  text-align: right;
+  font-size: 13.5px;
+}
+
+.hoja-firmas {
+  display: flex;
+  justify-content: space-between;
+  gap: 60px;
+  margin-top: 64px;
+}
+
+.hoja-firma {
+  flex: 1;
+  text-align: center;
+}
+
+.hoja-firma-linea {
+  display: block;
+  border-top: 1px solid var(--color-text);
+  margin-bottom: 6px;
+}
+
+.hoja-firma p {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+/* Al imprimir, oculto la barra superior y los botones, y dejo la hoja limpia */
+@media print {
+  .no-imprimir,
+  .app-header {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  .app-content {
+    margin: 0;
+    max-width: 100%;
+  }
+
+  .hoja-card {
+    box-shadow: none;
+    padding: 0;
+  }
+}
