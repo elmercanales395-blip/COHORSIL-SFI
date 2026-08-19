@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import Navbar from '../components/Navbar.jsx';
+import Layout from '../components/Layout.jsx';
 import HojaPedidoSelector from '../components/HojaPedidoSelector.jsx';
 import * as faltantesService from '../services/faltantes.service';
 
-// Página propia para generar la hoja de pedido/entrega de una sucursal
+// la hoja en sí (impresión) vive en HojaPedidoPage
 export default function HojasPedidoPage() {
   const [sucursales, setSucursales] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -24,12 +24,9 @@ export default function HojasPedidoPage() {
   }, []);
 
   return (
-    <>
-      <Navbar />
-      <main className="app-content">
+    <Layout>
         {error && <p className="error-text">{error}</p>}
         {cargando ? <p className="empty-state">Cargando...</p> : <HojaPedidoSelector sucursales={sucursales} />}
-      </main>
-    </>
+    </Layout>
   );
 }

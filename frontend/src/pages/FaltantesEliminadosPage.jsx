@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import Navbar from '../components/Navbar.jsx';
+import Layout from '../components/Layout.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import * as faltantesService from '../services/faltantes.service';
 
-// Página solo para administradores: ver y buscar faltantes borrados
+// solo admin, se valida el rol más abajo
 export default function FaltantesEliminadosPage() {
   const { usuario } = useAuth();
   const [faltantes, setFaltantes] = useState([]);
@@ -14,7 +14,6 @@ export default function FaltantesEliminadosPage() {
   const [busqueda, setBusqueda] = useState('');
   const [fecha, setFecha] = useState('');
 
-  // Carga los faltantes eliminados desde el backend
   async function cargarDatos() {
     setError('');
     try {
@@ -45,15 +44,12 @@ export default function FaltantesEliminadosPage() {
     });
   }, [faltantes, busqueda, fecha]);
 
-  // Si el usuario logueado no es admin, lo saco de esta página y lo mando al inicio
   if (usuario?.rol !== 'admin') {
     return <Navigate to="/" replace />;
   }
 
   return (
-    <>
-      <Navbar />
-      <main className="app-content">
+    <Layout>
         <section className="card">
           <h2>Historial de faltantes eliminados</h2>
           {error && <p className="error-text">{error}</p>}
@@ -75,7 +71,6 @@ export default function FaltantesEliminadosPage() {
             </div>
           </div>
 
-          {/* Manejo cuatro estados posibles: cargando, sin ningún eliminado, sin resultados de búsqueda, o la tabla */}
           {cargando ? (
             <p className="empty-state">Cargando...</p>
           ) : faltantes.length === 0 ? (
@@ -111,7 +106,6 @@ export default function FaltantesEliminadosPage() {
             </table>
           )}
         </section>
-      </main>
-    </>
+    </Layout>
   );
 }

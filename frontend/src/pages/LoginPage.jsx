@@ -2,25 +2,18 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 
-// Página de inicio de sesión
 export default function LoginPage() {
-  // Traigo la función de login del contexto de auth
   const { iniciarSesion } = useAuth();
-  // Uso navigate para redirigir al usuario después de un login exitoso
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  // Controla el estado de carga para deshabilitar el botón mientras se valida
   const [cargando, setCargando] = useState(false);
-  // Controla si se muestra el mensaje de "contacta a tu administrador"
   const [mostrarAyuda, setMostrarAyuda] = useState(false);
-  // Controla si la contraseña se muestra en texto plano
   const [verPassword, setVerPassword] = useState(false);
 
   async function handleSubmit(e) {
-    // Evito que el formulario recargue la página
     e.preventDefault();
     setError('');
 
@@ -38,10 +31,8 @@ export default function LoginPage() {
     setCargando(true);
     try {
       await iniciarSesion(email, password);
-      // Si el login sale bien, mando al usuario a la página principal
       navigate('/');
     } catch (err) {
-      // Muestro el mensaje de error que manda el backend, o uno genérico si no viene
       setError(err.response?.data?.mensaje || 'No se pudo iniciar sesión');
     } finally {
       setCargando(false);
@@ -100,7 +91,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Solo muestro el mensaje de error si existe */}
         {error && <p className="error-text">{error}</p>}
 
         <button className="btn-primary" type="submit" disabled={cargando}>

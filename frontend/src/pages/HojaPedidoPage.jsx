@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import * as faltantesService from '../services/faltantes.service';
 
-// Hoja imprimible con los faltantes de una sucursal: pendientes (solicitud de pedido) o resueltos (entrega)
+// pendiente = hoja de solicitud, resuelto = hoja de entrega
 export default function HojaPedidoPage() {
   const [searchParams] = useSearchParams();
   const sucursalId = Number(searchParams.get('sucursal'));
@@ -13,7 +13,6 @@ export default function HojaPedidoPage() {
   const [sucursales, setSucursales] = useState([]);
   const [cargando, setCargando] = useState(true);
 
-  // Traigo los datos una sola vez al entrar a la hoja
   useEffect(() => {
     async function cargar() {
       const [faltantesData, sucursalesData] = await Promise.all([
@@ -27,11 +26,9 @@ export default function HojaPedidoPage() {
     cargar();
   }, []);
 
-  // Comparo convirtiendo ambos lados a número: el backend a veces devuelve el id como texto (ej. "3")
-  // según el driver de SQL Server, así que una comparación estricta (===) podía fallar
+  // el driver de SQL Server a veces devuelve el id como string, por eso el Number() en vez de ===
   const sucursal = useMemo(() => sucursales.find((s) => Number(s.id) === sucursalId), [sucursales, sucursalId]);
 
-  // Filtro los faltantes de esa sucursal según el estado que corresponda a esta hoja
   const filas = useMemo(
     () => faltantes.filter((f) => f.sucursal === sucursal?.nombre && f.estado === tipo),
     [faltantes, sucursal, tipo],
@@ -106,7 +103,6 @@ export default function HojaPedidoPage() {
               <strong>Total de productos:</strong> {filas.length} · <strong>Total de unidades:</strong> {totalUnidades}
             </p>
 
-            {/* Firmas para dejar constancia física de quién entrega y quién recibe */}
             <div className="hoja-firmas">
               <div className="hoja-firma">
                 <span className="hoja-firma-linea"></span>

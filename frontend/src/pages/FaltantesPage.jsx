@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
-import Navbar from '../components/Navbar.jsx';
+import Layout from '../components/Layout.jsx';
 import FaltanteForm from '../components/FaltanteForm.jsx';
 import FaltanteTable from '../components/FaltanteTable.jsx';
 import * as faltantesService from '../services/faltantes.service';
 
-// Página principal del sistema: aquí se registran y se listan los faltantes activos
 export default function FaltantesPage() {
   const [faltantes, setFaltantes] = useState([]);
   const [productos, setProductos] = useState([]);
@@ -33,43 +32,37 @@ export default function FaltantesPage() {
     }
   }
 
-  // Cargo los datos una sola vez, apenas se monta la página
   useEffect(() => {
     cargarDatos();
   }, []);
 
-  // Cuando se registra un faltante nuevo desde el formulario, lo guardo y refresco la tabla
   async function handleCrear(payload) {
     await faltantesService.crearFaltante(payload);
     await cargarDatos();
   }
 
-  // Guarda los cambios de un faltante editado y refresca la tabla
   async function handleEditar(id, payload) {
     await faltantesService.actualizarFaltante(id, payload);
     await cargarDatos();
   }
 
-  // Marca un faltante como resuelto y refresca la tabla para reflejar el cambio
   async function handleResolver(id) {
     await faltantesService.resolverFaltante(id);
     await cargarDatos();
   }
 
-  // Elimina (borrado lógico) un faltante y refresca la tabla
+  // Elimina (borrado lógico), no borra el registro de la base de datos
   async function handleEliminar(id) {
     await faltantesService.eliminarFaltante(id);
     await cargarDatos();
   }
 
   return (
-    <>
-      <Navbar />
-      <main className="app-content">
-        {/* Formulario para registrar un faltante nuevo, o editar uno existente si "editando" tiene un valor */}
+    <Layout>
         <FaltanteForm
           productos={productos}
           sucursales={sucursales}
+          faltantes={faltantes}
           onCrear={handleCrear}
           onEditar={handleEditar}
           faltanteEditando={editando}
@@ -79,7 +72,6 @@ export default function FaltantesPage() {
         <section className="card">
           <h2>Faltantes registrados</h2>
           {error && <p className="error-text">{error}</p>}
-          {/* Mientras carga muestro un texto simple, cuando termina muestro la tabla */}
           {cargando ? (
             <p className="empty-state">Cargando...</p>
           ) : (
@@ -91,7 +83,6 @@ export default function FaltantesPage() {
             />
           )}
         </section>
-      </main>
-    </>
+    </Layout>
   );
 }

@@ -1,6 +1,5 @@
 const productoModel = require('../models/producto.model');
 
-// Devuelve la lista de productos activos, la uso para llenar el select del formulario de faltantes
 async function listar(req, res) {
   try {
     const productos = await productoModel.listar();

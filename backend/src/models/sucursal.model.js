@@ -1,6 +1,5 @@
 const { getConnection } = require('../config/db');
 
-// Traigo solo las sucursales activas, ordenadas por nombre
 async function listar() {
   const pool = await getConnection();
   const result = await pool.request()

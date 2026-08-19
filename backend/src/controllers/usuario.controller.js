@@ -1,8 +1,6 @@
-// Traigo el modelo de usuario para hablar con la base de datos
 const bcrypt = require('bcryptjs');
 const usuarioModel = require('../models/usuario.model');
 
-// Lista todos los usuarios registrados, solo puede verlo un administrador
 async function listar(req, res) {
   if (req.usuario.rol !== 'admin') {
     return res.status(403).json({ mensaje: 'Solo un administrador puede ver los usuarios' });
@@ -15,7 +13,7 @@ async function listar(req, res) {
   }
 }
 
-// Edita nombre, correo, rol y opcionalmente la contraseña de un usuario existente
+// La contraseña es opcional: solo se actualiza si mandan una nueva
 async function actualizar(req, res) {
   if (req.usuario.rol !== 'admin') {
     return res.status(403).json({ mensaje: 'Solo un administrador puede editar usuarios' });
@@ -39,7 +37,6 @@ async function actualizar(req, res) {
       return res.status(409).json({ mensaje: 'Ya existe otro usuario con ese email' });
     }
 
-    // Solo genero un hash nuevo si mandaron una contraseña para cambiar
     const password_hash = password ? await bcrypt.hash(password, 10) : null;
 
     const usuario = await usuarioModel.actualizar({ id, nombre, email, rol, password_hash });
@@ -49,7 +46,6 @@ async function actualizar(req, res) {
   }
 }
 
-// Elimina un usuario, no se permite que un admin se elimine a sí mismo
 async function eliminar(req, res) {
   if (req.usuario.rol !== 'admin') {
     return res.status(403).json({ mensaje: 'Solo un administrador puede eliminar usuarios' });
