@@ -1,9 +1,6 @@
-// Traigo el modelo que habla directo con la base de datos
 const faltanteModel = require('../models/faltante.model');
-// Traigo el servicio de correo para avisar cuando se registra un faltante nuevo
 const emailService = require('../services/email.service');
 
-// Devuelve todos los faltantes activos (los que no han sido eliminados)
 async function listar(req, res) {
   try {
     const faltantes = await faltanteModel.listar();
@@ -13,11 +10,9 @@ async function listar(req, res) {
   }
 }
 
-// Devuelve el detalle de un solo faltante según su id
 async function obtener(req, res) {
   try {
     const faltante = await faltanteModel.obtenerPorId(req.params.id);
-    // Si no existe ese id, respondo 404 en vez de mandar null
     if (!faltante) return res.status(404).json({ mensaje: 'Faltante no encontrado' });
     res.json(faltante);
   } catch (err) {
@@ -25,20 +20,34 @@ async function obtener(req, res) {
   }
 }
 
-// Registra un faltante nuevo, este es el flujo principal del sistema
 async function crear(req, res) {
   try {
-    // Extraigo los datos que manda el formulario del frontend
-    const { producto_id, sucursal_id, cantidad_solicitada, cliente_nombre, observaciones } = req.body;
+    const {
+      producto_id,
+      producto_solicitado,
+      casa_comercial,
+      producto_sustituto_id,
+      resultado_venta,
+      sucursal_id,
+      cantidad_solicitada,
+      cliente_nombre,
+      observaciones,
+    } = req.body;
 
-    // Valido los campos obligatorios antes de escribir en la base de datos
-    if (!producto_id || !sucursal_id || !cantidad_solicitada) {
-      return res.status(400).json({ mensaje: 'producto_id, sucursal_id y cantidad_solicitada son obligatorios' });
+    // producto_id no es obligatorio si es marca de la competencia (ahí lo que importa es producto_solicitado)
+    if ((!producto_id && !producto_solicitado) || !sucursal_id || !cantidad_solicitada) {
+      return res.status(400).json({
+        mensaje: 'sucursal_id, cantidad_solicitada y (producto_id o producto_solicitado) son obligatorios',
+      });
     }
 
-    // Creo el faltante, y le agrego el usuario_id que viene del token (lo puso el middleware de auth)
+    // usuario_id viene del token, lo agrega el middleware de auth
     const faltante = await faltanteModel.crear({
       producto_id,
+      producto_solicitado,
+      casa_comercial,
+      producto_sustituto_id,
+      resultado_venta,
       sucursal_id,
       usuario_id: req.usuario.id,
       cantidad_solicitada,
@@ -46,23 +55,33 @@ async function crear(req, res) {
       observaciones,
     });
 
-    // Respondo de inmediato al frontend con el faltante creado
     res.status(201).json(faltante);
 
-    // Mando el correo de notificación después de responder, para no hacer esperar al usuario si el envío tarda
+    // Se manda después de responder, para no hacer esperar al usuario si el envío tarda
     emailService.notificarFaltante(faltante);
   } catch (err) {
     res.status(500).json({ mensaje: 'Error al crear faltante', error: err.message });
   }
 }
 
-// Edita un faltante existente, por si el vendedor se equivocó al registrarlo
 async function actualizar(req, res) {
   try {
-    const { producto_id, sucursal_id, cantidad_solicitada, cliente_nombre, observaciones } = req.body;
+    const {
+      producto_id,
+      producto_solicitado,
+      casa_comercial,
+      producto_sustituto_id,
+      resultado_venta,
+      sucursal_id,
+      cantidad_solicitada,
+      cliente_nombre,
+      observaciones,
+    } = req.body;
 
-    if (!producto_id || !sucursal_id || !cantidad_solicitada) {
-      return res.status(400).json({ mensaje: 'producto_id, sucursal_id y cantidad_solicitada son obligatorios' });
+    if ((!producto_id && !producto_solicitado) || !sucursal_id || !cantidad_solicitada) {
+      return res.status(400).json({
+        mensaje: 'sucursal_id, cantidad_solicitada y (producto_id o producto_solicitado) son obligatorios',
+      });
     }
 
     const existente = await faltanteModel.obtenerPorId(req.params.id);
@@ -73,6 +92,10 @@ async function actualizar(req, res) {
     const faltante = await faltanteModel.actualizar({
       id: req.params.id,
       producto_id,
+      producto_solicitado,
+      casa_comercial,
+      producto_sustituto_id,
+      resultado_venta,
       sucursal_id,
       cantidad_solicitada,
       cliente_nombre,
@@ -84,7 +107,6 @@ async function actualizar(req, res) {
   }
 }
 
-// Marca un faltante como resuelto
 async function resolver(req, res) {
   try {
     const faltante = await faltanteModel.marcarResuelto(req.params.id);
@@ -94,20 +116,17 @@ async function resolver(req, res) {
   }
 }
 
-// Elimina un faltante (borrado lógico, solo lo desactiva)
+// Borrado lógico: solo desactiva el registro
 async function eliminar(req, res) {
   try {
     await faltanteModel.eliminar(req.params.id);
-    // 204 porque no hay contenido que devolver, solo confirmo que se hizo
     res.status(204).send();
   } catch (err) {
     res.status(500).json({ mensaje: 'Error al eliminar faltante', error: err.message });
   }
 }
 
-// Lista los faltantes eliminados, solo puede verlos un administrador
 async function listarEliminados(req, res) {
-  // Reviso el rol que viene dentro del token para restringir el acceso
   if (req.usuario.rol !== 'admin') {
     return res.status(403).json({ mensaje: 'Solo un administrador puede ver los faltantes eliminados' });
   }
@@ -119,7 +138,6 @@ async function listarEliminados(req, res) {
   }
 }
 
-// Restaura un faltante eliminado, también solo lo puede hacer un administrador
 async function restaurar(req, res) {
   if (req.usuario.rol !== 'admin') {
     return res.status(403).json({ mensaje: 'Solo un administrador puede restaurar faltantes' });
@@ -132,7 +150,6 @@ async function restaurar(req, res) {
   }
 }
 
-// Elimina un faltante para siempre de la base de datos, solo un administrador puede hacerlo
 async function eliminarDefinitivo(req, res) {
   if (req.usuario.rol !== 'admin') {
     return res.status(403).json({ mensaje: 'Solo un administrador puede eliminar definitivamente un faltante' });
@@ -145,5 +162,4 @@ async function eliminarDefinitivo(req, res) {
   }
 }
 
-// Exporto todas las funciones para que las use el router de faltantes
 module.exports = { listar, obtener, crear, actualizar, resolver, eliminar, listarEliminados, restaurar, eliminarDefinitivo };

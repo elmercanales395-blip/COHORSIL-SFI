@@ -1,7 +1,6 @@
 const { getConnection, sql } = require('../config/db');
 
-// Traigo todos los faltantes activos desde la vista vw_FaltantesDetalle
-// (uso una vista en vez de la tabla directa porque ya viene con los datos de producto/sucursal/usuario unidos)
+// vw_FaltantesDetalle ya trae producto/sucursal/usuario unidos, por eso no se usa la tabla directa
 async function listar() {
   const pool = await getConnection();
   const result = await pool.request()
@@ -9,7 +8,6 @@ async function listar() {
   return result.recordset;
 }
 
-// Traigo un solo faltante por su id, usando la misma vista para tener todos los datos ya combinados
 async function obtenerPorId(id) {
   const pool = await getConnection();
   const result = await pool.request()
@@ -18,37 +16,73 @@ async function obtenerPorId(id) {
   return result.recordset[0];
 }
 
-// Inserta un faltante nuevo en la tabla Faltantes
-async function crear({ producto_id, sucursal_id, usuario_id, cantidad_solicitada, cliente_nombre, observaciones }) {
+// producto_id NULL = pidió marca de competencia (queda en producto_solicitado como texto libre).
+// producto_sustituto_id es lo que se le ofreció en su lugar, resultado_venta si esa venta se dio o no
+async function crear({
+  producto_id,
+  producto_solicitado,
+  casa_comercial,
+  producto_sustituto_id,
+  resultado_venta,
+  sucursal_id,
+  usuario_id,
+  cantidad_solicitada,
+  cliente_nombre,
+  observaciones,
+}) {
   const pool = await getConnection();
   const result = await pool.request()
-    .input('producto_id', sql.Int, producto_id)
+    .input('producto_id', sql.Int, producto_id || null)
+    .input('producto_solicitado', sql.VarChar, producto_solicitado || null)
+    .input('casa_comercial', sql.VarChar, casa_comercial || null)
+    .input('producto_sustituto_id', sql.Int, producto_sustituto_id || null)
+    .input('resultado_venta', sql.VarChar, resultado_venta || null)
     .input('sucursal_id', sql.Int, sucursal_id)
     .input('usuario_id', sql.Int, usuario_id)
     .input('cantidad_solicitada', sql.Int, cantidad_solicitada)
-    // Si no me mandan cliente_nombre u observaciones, guardo NULL en vez de string vacío
     .input('cliente_nombre', sql.VarChar, cliente_nombre || null)
     .input('observaciones', sql.VarChar, observaciones || null)
-    // OUTPUT INSERTED.id me devuelve el id que generó automáticamente la base de datos
-    .query(`INSERT INTO Faltantes (producto_id, sucursal_id, usuario_id, cantidad_solicitada, cliente_nombre, observaciones)
+    // OUTPUT INSERTED.id devuelve el id generado sin necesidad de una segunda consulta
+    .query(`INSERT INTO Faltantes
+              (producto_id, producto_solicitado, casa_comercial, producto_sustituto_id, resultado_venta, sucursal_id, usuario_id, cantidad_solicitada, cliente_nombre, observaciones)
             OUTPUT INSERTED.id
-            VALUES (@producto_id, @sucursal_id, @usuario_id, @cantidad_solicitada, @cliente_nombre, @observaciones)`);
-  // Con ese id vuelvo a consultar la vista para devolver el registro completo con todos los datos unidos
+            VALUES
+              (@producto_id, @producto_solicitado, @casa_comercial, @producto_sustituto_id, @resultado_venta, @sucursal_id, @usuario_id, @cantidad_solicitada, @cliente_nombre, @observaciones)`);
+  // Se vuelve a consultar la vista para devolver el registro completo con los datos ya unidos
   return obtenerPorId(result.recordset[0].id);
 }
 
-// Actualiza los datos de un faltante existente (por si el vendedor se equivocó al registrarlo)
-async function actualizar({ id, producto_id, sucursal_id, cantidad_solicitada, cliente_nombre, observaciones }) {
+// También se usa para marcar después si la venta se concretó con el sustituto o se perdió
+async function actualizar({
+  id,
+  producto_id,
+  producto_solicitado,
+  casa_comercial,
+  producto_sustituto_id,
+  resultado_venta,
+  sucursal_id,
+  cantidad_solicitada,
+  cliente_nombre,
+  observaciones,
+}) {
   const pool = await getConnection();
   await pool.request()
     .input('id', sql.Int, id)
-    .input('producto_id', sql.Int, producto_id)
+    .input('producto_id', sql.Int, producto_id || null)
+    .input('producto_solicitado', sql.VarChar, producto_solicitado || null)
+    .input('casa_comercial', sql.VarChar, casa_comercial || null)
+    .input('producto_sustituto_id', sql.Int, producto_sustituto_id || null)
+    .input('resultado_venta', sql.VarChar, resultado_venta || null)
     .input('sucursal_id', sql.Int, sucursal_id)
     .input('cantidad_solicitada', sql.Int, cantidad_solicitada)
     .input('cliente_nombre', sql.VarChar, cliente_nombre || null)
     .input('observaciones', sql.VarChar, observaciones || null)
     .query(`UPDATE Faltantes
             SET producto_id = @producto_id,
+                producto_solicitado = @producto_solicitado,
+                casa_comercial = @casa_comercial,
+                producto_sustituto_id = @producto_sustituto_id,
+                resultado_venta = @resultado_venta,
                 sucursal_id = @sucursal_id,
                 cantidad_solicitada = @cantidad_solicitada,
                 cliente_nombre = @cliente_nombre,
@@ -57,7 +91,6 @@ async function actualizar({ id, producto_id, sucursal_id, cantidad_solicitada, c
   return obtenerPorId(id);
 }
 
-// Cambia el estado de un faltante a 'resuelto' y guarda la fecha en la que se resolvió
 async function marcarResuelto(id) {
   const pool = await getConnection();
   await pool.request()
@@ -66,7 +99,7 @@ async function marcarResuelto(id) {
   return obtenerPorId(id);
 }
 
-// Borrado lógico: no borro la fila, solo pongo activo = 0 y guardo la fecha de eliminación
+// Borrado lógico: no borra la fila, solo activo = 0
 async function eliminar(id) {
   const pool = await getConnection();
   await pool.request()
@@ -74,7 +107,6 @@ async function eliminar(id) {
     .query(`UPDATE Faltantes SET activo = 0, fecha_eliminacion = GETDATE() WHERE id = @id`);
 }
 
-// Trae los faltantes eliminados desde su propia vista, para poder revisarlos o restaurarlos
 async function listarEliminados() {
   const pool = await getConnection();
   const result = await pool.request()
@@ -82,7 +114,6 @@ async function listarEliminados() {
   return result.recordset;
 }
 
-// Deshace el borrado lógico: vuelvo a poner activo = 1 y limpio la fecha de eliminación
 async function restaurar(id) {
   const pool = await getConnection();
   await pool.request()
@@ -91,8 +122,7 @@ async function restaurar(id) {
   return obtenerPorId(id);
 }
 
-// Borrado real de la base de datos, solo permito borrar los que ya estaban con activo = 0
-// (evito que se borre por accidente un faltante que sigue activo)
+// el AND activo = 0 es a propósito, para no borrar por error uno que sigue activo
 async function eliminarDefinitivo(id) {
   const pool = await getConnection();
   await pool.request()
@@ -100,7 +130,6 @@ async function eliminarDefinitivo(id) {
     .query('DELETE FROM Faltantes WHERE id = @id AND activo = 0');
 }
 
-// Exporto todas las funciones para que el controlador de faltantes las use
 module.exports = {
   listar,
   obtenerPorId,

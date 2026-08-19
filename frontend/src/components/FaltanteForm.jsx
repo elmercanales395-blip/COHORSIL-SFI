@@ -1,29 +1,28 @@
 import { useEffect, useMemo, useState } from 'react';
+import SearchableSelect from './SearchableSelect.jsx';
+import TextAutocomplete from './TextAutocomplete.jsx';
 
 const FORM_VACIO = {
+  tipoConsulta: 'propio', // 'propio' o 'competencia'
   categoria: '',
   producto_id: '',
-  zona: '',
+  producto_solicitado: '',
+  casa_comercial: '',
+  producto_sustituto_id: '',
+  resultado_venta: '', // '' = sin decidir, 'convertida', 'perdida'
   sucursal_id: '',
   cantidad_solicitada: 1,
   cliente_nombre: '',
   observaciones: '',
 };
 
-// Formulario para registrar un faltante nuevo, o editar uno existente
-// Recibo productos y sucursales ya cargados desde la página padre, onCrear/onEditar para avisar cuando se envía,
-// y faltanteEditando (o null) para saber si el formulario debe comportarse como edición
-export default function FaltanteForm({ productos, sucursales, onCrear, onEditar, faltanteEditando, onCancelarEdicion }) {
-  // Guardo todos los campos del formulario en un solo estado
+export default function FaltanteForm({ productos, sucursales, faltantes, onCrear, onEditar, faltanteEditando, onCancelarEdicion }) {
   const [form, setForm] = useState(FORM_VACIO);
-  // Controla el estado de "enviando" para deshabilitar el botón mientras se procesa
   const [enviando, setEnviando] = useState(false);
 
-  // Texto que uso quiero mostrar cuando una sucursal no tiene zona asignada
   const SIN_ZONA = 'Sin zona';
 
-  // Líneas de producto oficiales de COHORSIL (mismas que el ERP), fijas para que estén
-  // disponibles desde el día uno aunque todavía no haya productos cargados en esa categoría
+  // mismas líneas que el ERP, hardcodeadas para que existan aunque todavía no haya productos cargados
   const CATEGORIAS = [
     'FERTILIZANTES',
     'ABONOS FOLIARES',
@@ -43,38 +42,45 @@ export default function FaltanteForm({ productos, sucursales, onCrear, onEditar,
     'PLANTULAS',
   ];
 
-  // Filtro los productos según la categoría elegida, así el select de producto se actualiza en cascada
+  // categoría es opcional, solo acota la búsqueda si está elegida
   const productosFiltrados = useMemo(
-    () => productos.filter((p) => p.categoria === form.categoria),
+    () => (form.categoria ? productos.filter((p) => p.categoria === form.categoria) : productos),
     [productos, form.categoria],
   );
 
-  // Igual que categorías, pero para las zonas de las sucursales
-  const zonas = useMemo(
-    () => [...new Set(sucursales.map((s) => s.zona || SIN_ZONA))].sort(),
-    [sucursales],
+  // no tiene sentido sugerir el mismo producto como su propio sustituto
+  const sustitutosCandidatos = useMemo(
+    () => productosFiltrados.filter((p) => String(p.id) !== form.producto_id),
+    [productosFiltrados, form.producto_id],
   );
 
-  // Filtro las sucursales según la zona elegida
-  const sucursalesFiltradas = useMemo(
-    () => sucursales.filter((s) => (s.zona || SIN_ZONA) === form.zona),
-    [sucursales, form.zona],
+  const marcasCompetencia = useMemo(
+    () => [...new Set((faltantes || []).map((f) => f.producto_solicitado).filter(Boolean))].sort(),
+    [faltantes],
   );
 
-  // Cuando eligen "Editar" un faltante en la tabla, relleno el formulario con sus datos.
-  // La vista de faltantes solo trae el código de producto y el nombre de sucursal (no sus ids),
-  // así que los busco en las listas de productos/sucursales que ya tengo cargadas
+  const casasComerciales = useMemo(
+    () => [...new Set((faltantes || []).map((f) => f.casa_comercial).filter(Boolean))].sort(),
+    [faltantes],
+  );
+
+  // la vista de faltantes trae nombres, no ids, así que hay que buscarlos en las listas cargadas
   useEffect(() => {
     if (!faltanteEditando) {
       setForm(FORM_VACIO);
       return;
     }
     const producto = productos.find((p) => p.codigo === faltanteEditando.producto_codigo);
+    const sustituto = productos.find((p) => p.nombre === faltanteEditando.producto_sustituto);
     const sucursal = sucursales.find((s) => s.nombre === faltanteEditando.sucursal);
     setForm({
-      categoria: producto?.categoria || '',
+      tipoConsulta: faltanteEditando.producto_codigo ? 'propio' : 'competencia',
+      categoria: producto?.categoria || sustituto?.categoria || '',
       producto_id: producto ? String(producto.id) : '',
-      zona: sucursal?.zona || SIN_ZONA,
+      producto_solicitado: faltanteEditando.producto_solicitado || '',
+      casa_comercial: faltanteEditando.casa_comercial || '',
+      producto_sustituto_id: sustituto ? String(sustituto.id) : '',
+      resultado_venta: faltanteEditando.resultado_venta || '',
       sucursal_id: sucursal ? String(sucursal.id) : '',
       cantidad_solicitada: faltanteEditando.cantidad_solicitada,
       cliente_nombre: faltanteEditando.cliente_nombre || '',
@@ -83,28 +89,56 @@ export default function FaltanteForm({ productos, sucursales, onCrear, onEditar,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [faltanteEditando]);
 
-  // Manejador genérico para todos los inputs/selects del formulario
   function handleChange(e) {
     const { name, value } = e.target;
     setForm((prev) => ({
       ...prev,
       [name]: value,
-      // Si cambio la categoría, limpio el producto seleccionado porque ya no aplica
-      ...(name === 'categoria' ? { producto_id: '' } : {}),
-      // Si cambio la zona, limpio la sucursal seleccionada por la misma razón
-      ...(name === 'zona' ? { sucursal_id: '' } : {}),
+      // limpia los campos del modo que se deja al cambiar tipoConsulta
+      ...(name === 'tipoConsulta'
+        ? value === 'competencia'
+          ? { producto_id: '' }
+          : { producto_solicitado: '', casa_comercial: '' }
+        : {}),
     }));
   }
 
-  // Se ejecuta cuando envío el formulario, ya sea para crear un faltante nuevo o guardar la edición de uno existente
+  function handleCategoriaChange(value) {
+    setForm((prev) => ({ ...prev, categoria: value, producto_id: '', producto_sustituto_id: '' }));
+  }
+
+  // si eligen producto sin haber elegido categoría antes, se rellena sola con la del producto;
+  // y si eso cambia de categoría, se invalida el sustituto que ya estaba elegido
+  function handleProductoChange(id) {
+    const producto = productos.find((p) => String(p.id) === String(id));
+    setForm((prev) => ({
+      ...prev,
+      producto_id: id,
+      categoria: producto?.categoria || prev.categoria,
+      producto_sustituto_id: producto && producto.categoria !== prev.categoria ? '' : prev.producto_sustituto_id,
+    }));
+  }
+
+  function handleSucursalChange(id) {
+    setForm((prev) => ({ ...prev, sucursal_id: id }));
+  }
+
+  // las dos opciones son excluyentes; tocar la que ya estaba marcada la deja "sin decidir" otra vez
+  function handleResultadoVenta(valor) {
+    setForm((prev) => ({ ...prev, resultado_venta: prev.resultado_venta === valor ? '' : valor }));
+  }
+
   async function handleSubmit(e) {
-    // Evito que el navegador recargue la página, como hace por defecto en un submit
     e.preventDefault();
     setEnviando(true);
     try {
-      // Convierto a número los ids y la cantidad antes de mandarlos al backend
+      // en modo competencia se manda el texto libre en vez de producto_id
       const payload = {
-        producto_id: Number(form.producto_id),
+        ...(form.tipoConsulta === 'competencia'
+          ? { producto_solicitado: form.producto_solicitado, casa_comercial: form.casa_comercial || null }
+          : { producto_id: Number(form.producto_id) }),
+        producto_sustituto_id: form.producto_sustituto_id ? Number(form.producto_sustituto_id) : null,
+        resultado_venta: form.resultado_venta || null,
         sucursal_id: Number(form.sucursal_id),
         cantidad_solicitada: Number(form.cantidad_solicitada),
         cliente_nombre: form.cliente_nombre,
@@ -113,97 +147,114 @@ export default function FaltanteForm({ productos, sucursales, onCrear, onEditar,
 
       if (faltanteEditando) {
         await onEditar(faltanteEditando.faltante_id, payload);
-        // Salgo del modo edición; el useEffect de arriba se encarga de vaciar el formulario
-        onCancelarEdicion();
+        onCancelarEdicion(); // el useEffect de arriba vacía el form solo
       } else {
         await onCrear(payload);
-        // Si se creó bien, limpio el formulario para que quede listo para un registro nuevo
         setForm(FORM_VACIO);
       }
     } finally {
-      // Pase lo que pase, quito el estado de "enviando" al terminar
       setEnviando(false);
     }
   }
 
   return (
-    <form className="card" onSubmit={handleSubmit}>
+    <form className="card" onSubmit={handleSubmit} noValidate>
       <h2>{faltanteEditando ? 'Editar faltante' : 'Registrar producto no disponible'}</h2>
       <div className="form-grid">
-        {/* Primer select: categoría. Al elegirla se habilita el select de producto */}
-        <div className="field">
-          <label htmlFor="categoria">Categoría</label>
-          <select id="categoria" name="categoria" value={form.categoria} onChange={handleChange} required>
-            <option value="" disabled>
-              Selecciona una categoría
-            </option>
-            {CATEGORIAS.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
+        <div className="field" style={{ gridColumn: '1 / -1' }}>
+          <label>Tipo de consulta</label>
+          <div className="radio-group">
+            <label className="radio-option">
+              <input
+                type="radio"
+                name="tipoConsulta"
+                value="propio"
+                checked={form.tipoConsulta === 'propio'}
+                onChange={handleChange}
+              />
+              Producto COHORSIL agotado
+            </label>
+            <label className="radio-option">
+              <input
+                type="radio"
+                name="tipoConsulta"
+                value="competencia"
+                checked={form.tipoConsulta === 'competencia'}
+                onChange={handleChange}
+              />
+              Marca / casa comercial externa (competencia)
+            </label>
+          </div>
         </div>
 
-        {/* Select de producto, deshabilitado hasta que se elija una categoría, y filtrado según esa categoría */}
         <div className="field">
-          <label htmlFor="producto_id">Producto</label>
-          <select
-            id="producto_id"
-            name="producto_id"
-            value={form.producto_id}
-            onChange={handleChange}
-            disabled={!form.categoria}
-            required
-          >
-            <option value="" disabled>
-              {form.categoria ? 'Selecciona un producto' : 'Primero elige una categoría'}
-            </option>
-            {productosFiltrados.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.nombre}
-              </option>
-            ))}
-          </select>
+          <label htmlFor="categoria">Categoría (opcional, para acotar la búsqueda)</label>
+          <SearchableSelect
+            id="categoria"
+            options={CATEGORIAS.map((c) => ({ value: c, label: c }))}
+            value={form.categoria}
+            onChange={handleCategoriaChange}
+            placeholder="Buscar categoría..."
+            emptyText="Ninguna categoría coincide con la búsqueda"
+          />
         </div>
 
-        {/* Mismo patrón en cascada, pero para zona -> sucursal */}
-        <div className="field">
-          <label htmlFor="zona">Zona</label>
-          <select id="zona" name="zona" value={form.zona} onChange={handleChange} required>
-            <option value="" disabled>
-              Selecciona una zona
-            </option>
-            {zonas.map((z) => (
-              <option key={z} value={z}>
-                {z}
-              </option>
-            ))}
-          </select>
-        </div>
+        {form.tipoConsulta === 'competencia' && (
+          // no depende de la categoría de arriba, esa es solo para sugerir el sustituto
+          <div className="field" style={{ gridColumn: '1 / -1' }}>
+            <label htmlFor="producto_solicitado">Producto/marca buscada por el cliente (competencia)</label>
+            <TextAutocomplete
+              id="producto_solicitado"
+              value={form.producto_solicitado}
+              onChange={(v) => setForm((prev) => ({ ...prev, producto_solicitado: v }))}
+              sugerencias={marcasCompetencia}
+              placeholder="Ej. Opera"
+              required
+            />
+          </div>
+        )}
+
+        {form.tipoConsulta === 'competencia' && (
+          <div className="field" style={{ gridColumn: '1 / -1' }}>
+            <label htmlFor="casa_comercial">Casa comercial a la que pertenece</label>
+            <TextAutocomplete
+              id="casa_comercial"
+              value={form.casa_comercial}
+              onChange={(v) => setForm((prev) => ({ ...prev, casa_comercial: v }))}
+              sugerencias={casasComerciales}
+              placeholder="Ej. Syngenta"
+            />
+          </div>
+        )}
+
+        {form.tipoConsulta !== 'competencia' && (
+          <div className="field">
+            <label htmlFor="producto_id">Producto agotado</label>
+            <SearchableSelect
+              id="producto_id"
+              options={productosFiltrados.map((p) => ({ value: String(p.id), label: p.nombre }))}
+              value={form.producto_id}
+              onChange={handleProductoChange}
+              placeholder="Buscar producto por nombre..."
+              required
+              emptyText="Ningún producto coincide con la búsqueda"
+            />
+          </div>
+        )}
 
         <div className="field">
           <label htmlFor="sucursal_id">Sucursal</label>
-          <select
+          <SearchableSelect
             id="sucursal_id"
-            name="sucursal_id"
+            options={sucursales.map((s) => ({ value: String(s.id), label: s.nombre, sublabel: s.zona || SIN_ZONA }))}
             value={form.sucursal_id}
-            onChange={handleChange}
-            disabled={!form.zona}
+            onChange={handleSucursalChange}
+            placeholder="Buscar sucursal por nombre..."
             required
-          >
-            <option value="" disabled>
-              {form.zona ? 'Selecciona una sucursal' : 'Primero elige una zona'}
-            </option>
-            {sucursalesFiltradas.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.nombre}
-              </option>
-            ))}
-          </select>
+            emptyText="Ninguna sucursal coincide con la búsqueda"
+          />
         </div>
 
-        {/* Cantidad solicitada, obligatoria y mínimo 1 */}
         <div className="field">
           <label htmlFor="cantidad_solicitada">Cantidad solicitada</label>
           <input
@@ -217,7 +268,6 @@ export default function FaltanteForm({ productos, sucursales, onCrear, onEditar,
           />
         </div>
 
-        {/* Nombre del cliente, este campo es opcional */}
         <div className="field">
           <label htmlFor="cliente_nombre">Cliente (opcional)</label>
           <input
@@ -229,7 +279,6 @@ export default function FaltanteForm({ productos, sucursales, onCrear, onEditar,
           />
         </div>
 
-        {/* Observaciones libres, ocupa todo el ancho de la fila con gridColumn: '1 / -1' */}
         <div className="field" style={{ gridColumn: '1 / -1' }}>
           <label htmlFor="observaciones">Observaciones</label>
           <input
@@ -241,7 +290,46 @@ export default function FaltanteForm({ productos, sucursales, onCrear, onEditar,
           />
         </div>
 
-        {/* Botones de enviar (y cancelar si estoy editando), se deshabilita mientras se procesa para evitar doble clic */}
+        {form.categoria && (
+          <div className="dss-card" style={{ gridColumn: '1 / -1' }}>
+            <span className="bi-kicker">Sustitución sugerida</span>
+
+            <div className="field">
+              <label htmlFor="producto_sustituto_id">Producto COHORSIL sustituto</label>
+              <SearchableSelect
+                id="producto_sustituto_id"
+                options={[
+                  { value: '', label: 'Ninguno / no aplica' },
+                  ...sustitutosCandidatos.map((p) => ({ value: String(p.id), label: p.nombre, sublabel: p.categoria })),
+                ]}
+                value={form.producto_sustituto_id}
+                onChange={(id) => setForm((prev) => ({ ...prev, producto_sustituto_id: id }))}
+                placeholder="Buscar producto sustituto..."
+                emptyText="Ningún producto coincide con la búsqueda"
+              />
+            </div>
+
+            <div className="dss-check-row">
+              <label className="dss-check dss-check-convertida">
+                <input
+                  type="checkbox"
+                  checked={form.resultado_venta === 'convertida'}
+                  onChange={() => handleResultadoVenta('convertida')}
+                />
+                Venta concretada con producto sustituto
+              </label>
+              <label className="dss-check dss-check-perdida">
+                <input
+                  type="checkbox"
+                  checked={form.resultado_venta === 'perdida'}
+                  onChange={() => handleResultadoVenta('perdida')}
+                />
+                Cliente no aceptó alternativa (venta perdida)
+              </label>
+            </div>
+          </div>
+        )}
+
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn-primary" type="submit" disabled={enviando}>
             {enviando ? 'Guardando...' : faltanteEditando ? 'Guardar cambios' : 'Registrar faltante'}

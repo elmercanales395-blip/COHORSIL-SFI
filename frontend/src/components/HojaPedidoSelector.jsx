@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import SearchableSelect from './SearchableSelect.jsx';
 
 // Selector para generar la hoja de pedido (pendientes) o de entrega (resueltos) de una sucursal
 export default function HojaPedidoSelector({ sucursales }) {
   const navigate = useNavigate();
-  // Sucursal elegida para generar su hoja
   const [sucursalHoja, setSucursalHoja] = useState('');
 
   return (
@@ -13,16 +13,14 @@ export default function HojaPedidoSelector({ sucursales }) {
       <div className="form-grid">
         <div className="field">
           <label htmlFor="sucursal_hoja">Sucursal</label>
-          <select id="sucursal_hoja" value={sucursalHoja} onChange={(e) => setSucursalHoja(e.target.value)}>
-            <option value="" disabled>
-              Selecciona una sucursal
-            </option>
-            {sucursales.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.nombre}
-              </option>
-            ))}
-          </select>
+          <SearchableSelect
+            id="sucursal_hoja"
+            options={sucursales.map((s) => ({ value: String(s.id), label: s.nombre, sublabel: s.zona || 'Sin zona' }))}
+            value={sucursalHoja}
+            onChange={setSucursalHoja}
+            placeholder="Buscar sucursal por nombre..."
+            emptyText="Ninguna sucursal coincide con la búsqueda"
+          />
         </div>
 
         <button
