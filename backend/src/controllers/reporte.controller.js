@@ -1,7 +1,6 @@
 const reporteModel = require('../models/reporte.model');
-const { generarPdfReportes } = require('../utils/pdf.util');
+const reporteService = require('../services/reporte.service');
 
-// Reporte: cuántas veces se ha reportado cada producto como faltante
 async function porProducto(req, res) {
   try {
     const data = await reporteModel.porProducto();
@@ -11,7 +10,6 @@ async function porProducto(req, res) {
   }
 }
 
-// Reporte: total de faltantes agrupados por sucursal
 async function porSucursal(req, res) {
   try {
     const data = await reporteModel.porSucursal();
@@ -21,7 +19,6 @@ async function porSucursal(req, res) {
   }
 }
 
-// Reporte: faltantes que aún no se han resuelto, ordenados por antigüedad
 async function pendientes(req, res) {
   try {
     const data = await reporteModel.pendientes();
@@ -31,7 +28,6 @@ async function pendientes(req, res) {
   }
 }
 
-// Reporte: promedio de días que se tarda en resolver un faltante
 async function tiempoResolucion(req, res) {
   try {
     const data = await reporteModel.tiempoResolucion();
@@ -41,68 +37,33 @@ async function tiempoResolucion(req, res) {
   }
 }
 
-// Un solo PDF con los 4 reportes juntos (uno por página), usando las mismas columnas
-// que ya se muestran en cada tabla del frontend
+// Si no viene desde/hasta en el query string, usa el mes actual por defecto
+function rangoDesdeQuery(query) {
+  const hoy = new Date();
+  const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().slice(0, 10);
+  const hoyStr = hoy.toISOString().slice(0, 10);
+  return { desde: query.desde || primerDiaMes, hasta: query.hasta || hoyStr };
+}
+
+// ?tipo=resumen|detalle&desde=&hasta= -- detalle agrega las 4 tablas, resumen solo KPIs/gráficas
 async function reportesPdf(req, res) {
   try {
-    const [porProductoData, porSucursalData, pendientesData, tiempoResolucionData] = await Promise.all([
-      reporteModel.porProducto(),
-      reporteModel.porSucursal(),
-      reporteModel.pendientes(),
-      reporteModel.tiempoResolucion(),
-    ]);
-
-    generarPdfReportes(res, {
-      nombreArchivo: 'reportes-faltantes.pdf',
-      secciones: [
-        {
-          titulo: 'Faltantes pendientes',
-          filas: pendientesData,
-          columnas: [
-            { key: 'producto_nombre', label: 'Producto' },
-            { key: 'sucursal', label: 'Sucursal' },
-            { key: 'cantidad_solicitada', label: 'Cant.' },
-            { key: 'cliente_nombre', label: 'Cliente' },
-            { key: 'fecha_registro', label: 'Reportado el', format: (v) => new Date(v).toLocaleString('es-GT') },
-            { key: 'dias_transcurridos', label: 'Días esperando' },
-          ],
-        },
-        {
-          titulo: 'Faltantes por producto',
-          filas: porProductoData,
-          columnas: [
-            { key: 'codigo', label: 'Código' },
-            { key: 'producto', label: 'Producto' },
-            { key: 'categoria', label: 'Categoría' },
-            { key: 'veces_reportado', label: 'Veces reportado' },
-            { key: 'unidades_solicitadas', label: 'Unidades solicitadas' },
-            { key: 'pendientes', label: 'Pendientes' },
-          ],
-        },
-        {
-          titulo: 'Faltantes por sucursal',
-          filas: porSucursalData,
-          columnas: [
-            { key: 'sucursal', label: 'Sucursal' },
-            { key: 'total_faltantes', label: 'Total' },
-            { key: 'pendientes', label: 'Pendientes' },
-            { key: 'resueltos', label: 'Resueltos' },
-          ],
-        },
-        {
-          titulo: 'Tiempo promedio de resolución',
-          filas: tiempoResolucionData,
-          columnas: [
-            { key: 'producto', label: 'Producto' },
-            { key: 'faltantes_resueltos', label: 'Faltantes resueltos' },
-            { key: 'promedio_dias_resolucion', label: 'Promedio de días' },
-          ],
-        },
-      ],
-    });
+    const tipo = req.query.tipo === 'detalle' ? 'detalle' : 'resumen';
+    const { desde, hasta } = rangoDesdeQuery(req.query);
+    await reporteService.enviarReportePdf(res, { tipo, desde, hasta });
   } catch (err) {
-    res.status(500).json({ mensaje: 'Error al generar el PDF de reportes', error: err.message });
+    res.status(500).json({ mensaje: 'Error al generar el reporte', error: err.message });
   }
 }
 
-module.exports = { porProducto, porSucursal, pendientes, tiempoResolucion, reportesPdf };
+// el Excel no tiene modo "resumen" como el PDF, siempre trae todas las hojas (es para analizar, no para imprimir)
+async function reportesExcel(req, res) {
+  try {
+    const { desde, hasta } = rangoDesdeQuery(req.query);
+    await reporteService.enviarReporteExcel(res, { desde, hasta });
+  } catch (err) {
+    res.status(500).json({ mensaje: 'Error al generar el reporte en Excel', error: err.message });
+  }
+}
+
+module.exports = { porProducto, porSucursal, pendientes, tiempoResolucion, reportesPdf, reportesExcel };

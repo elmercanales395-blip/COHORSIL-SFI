@@ -1,9 +1,6 @@
 const { getConnection } = require('../config/db');
 
-// Cada reporte usa su propia vista de SQL Server, así dejo la lógica de agrupación y cálculo en la base de datos
-// en vez de traer todos los datos crudos y procesarlos en JavaScript
-
-// Vista que agrupa y cuenta cuántas veces se reportó cada producto como faltante
+// cada reporte tiene su vista en SQL Server, la agrupación se hace allá y no en JS
 async function porProducto() {
   const pool = await getConnection();
   const result = await pool.request()
@@ -11,7 +8,6 @@ async function porProducto() {
   return result.recordset;
 }
 
-// Vista que agrupa el total de faltantes por sucursal
 async function porSucursal() {
   const pool = await getConnection();
   const result = await pool.request()
@@ -19,7 +15,6 @@ async function porSucursal() {
   return result.recordset;
 }
 
-// Vista con los faltantes que siguen pendientes, ordenados del más antiguo al más nuevo
 async function pendientes() {
   const pool = await getConnection();
   const result = await pool.request()
@@ -27,7 +22,6 @@ async function pendientes() {
   return result.recordset;
 }
 
-// Vista que calcula el promedio de días de resolución
 async function tiempoResolucion() {
   const pool = await getConnection();
   const result = await pool.request()
