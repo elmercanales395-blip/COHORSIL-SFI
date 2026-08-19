@@ -80,6 +80,3 @@ npm run build
 - El primer usuario administrador hay que crearlo directamente en la tabla `Usuarios` (insertando
   un registro con `rol = 'admin'` y el hash de la contraseña), ya que el registro de usuarios
   desde la app requiere estar logueado como admin.
-
-## kevintic2026@gmail.com
-## Contraseña Cohorsil2026!
