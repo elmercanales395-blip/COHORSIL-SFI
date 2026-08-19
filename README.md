@@ -1,7 +1,7 @@
-# SRF - Sistema de Registro de Faltantes (COHORSIL)
+# SRF - Sistema de Registro de Faltantes para toma de decisiones(COHORSIL)
 
 Módulo para registrar productos agotados ("faltantes") por sucursal y generar reportería para
-los departamentos de compras e inventarios. Backend en Node/Express + SQL Server, frontend en
+los departamentos de compras e inventarios y gerencia. Backend en Node/Express + SQL Server, frontend en
 React + Vite.
 
 ## Requisitos
@@ -17,9 +17,11 @@ React + Vite.
 ## 1. Base de datos
 
 1. Crear una base de datos vacía en SQL Server (ej. `srf_faltantes`).
-2. Ejecutar los scripts de `backend/database/` **en orden numérico** (01 al 33) contra esa base,
+2. Ejecutar los scripts de `backend/database/` **en orden numérico** (01 al 39) contra esa base,
    desde SQL Server Management Studio o `sqlcmd`. Crean las tablas, las vistas de reportería y
-   cargan el catálogo de productos/sucursales de ejemplo.
+   cargan el catálogo de productos/sucursales de ejemplo. Los scripts 34 en adelante agregan el
+   soporte para sustitución de productos (DSS) y para registrar consultas de casas comerciales de
+   la competencia.
 
 ## 2. Backend
 
@@ -44,6 +46,10 @@ npm run dev
 ```
 
 Por defecto queda escuchando en el puerto 3000 (`http://localhost:3000/api`).
+
+Al arrancar también se programa un job (`node-cron`) que el día 1 de cada mes, a las 6:00am hora
+de Honduras, genera el reporte del mes recién cerrado (PDF y Excel) y lo envía por correo a
+`EMAIL_TO` — usa las mismas variables de correo de arriba, no hace falta configurar nada aparte.
 
 ## 3. Frontend
 
@@ -74,3 +80,6 @@ npm run build
 - El primer usuario administrador hay que crearlo directamente en la tabla `Usuarios` (insertando
   un registro con `rol = 'admin'` y el hash de la contraseña), ya que el registro de usuarios
   desde la app requiere estar logueado como admin.
+
+## kevintic2026@gmail.com
+## Contraseña Cohorsil2026!
